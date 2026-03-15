@@ -18,7 +18,7 @@ public class BookingsController : ControllerBase
     {
         _context = context;
     }
-    [Authorize(Roles = "Customer")]
+    [Authorize(Roles = "Customer,Admin")]
     [HttpPatch("{id:int}/cancel")]
     public async Task<IActionResult> Cancel(int id)
     {
@@ -28,7 +28,8 @@ public class BookingsController : ControllerBase
         var booking = await _context.Bookings.FindAsync(id);
         if (booking == null) return NotFound();
 
-        if (booking.UserId != userId)
+        var isAdmin = User.IsInRole("Admin");
+        if (!isAdmin && booking.UserId != userId)
             return Forbid();
 
         if (booking.Status == "Completed")

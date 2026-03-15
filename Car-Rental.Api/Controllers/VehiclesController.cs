@@ -88,4 +88,47 @@ public class VehiclesController : ControllerBase
         await _context.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
     }
-}
+
+    [Authorize(Roles = "Admin")]
+    [HttpPut("{id:int}")]
+
+    public async Task<ActionResult<Vehicle>> Update(int id, Vehicle vehicle)
+    {
+        var existing = await _context.Vehicles.FindAsync(id);
+        if (existing == null) return NotFound();
+
+        existing.Make = vehicle.Make;
+        existing.Model = vehicle.Model;
+        existing.Year = vehicle.Year;
+        existing.Category = vehicle.Category;
+        existing.Color = vehicle.Color;
+        existing.Seats = vehicle.Seats;
+        existing.Mileage = vehicle.Mileage;
+        existing.Status = vehicle.Status;
+
+        await _context.SaveChangesAsync();
+        return Ok(existing);
+
+    }
+
+    [Authorize(Roles = "Admin")]
+    [HttpDelete("{id:int}")]
+
+    public async Task<ActionResult> Delete(int id)
+    {
+        var vehicle = await _context.Vehicles.FindAsync();
+        if (vehicle == null) return NotFound();
+
+        var hasActiveBooking = await _context.Bookings.AnyAsync(b => b.VehicleId == id && b.Status == "Active");
+        if (hasActiveBooking)
+             return BadRequest("Cannot delete a vehicle with active bookings.");
+
+        _context.Vehicles.Remove(vehicle);
+        await _context.SaveChangesAsync();
+        return NoContent();
+
+
+
+    }
+
+    }

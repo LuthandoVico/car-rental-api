@@ -12,6 +12,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AppDbContext>(options =>
   options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ReactApp", p =>
+        p.WithOrigins("http://localhost:5173", "http://localhost:3000")
+         .AllowAnyHeader()
+         .AllowAnyMethod());
+});
+
 builder.Services
     .AddIdentityCore<AppUser>()
     .AddRoles<IdentityRole>()
@@ -80,7 +88,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseCors("ReactApp");
 app.UseAuthentication();   // ?? MUST come before UseAuthorization
 app.UseAuthorization();
 
