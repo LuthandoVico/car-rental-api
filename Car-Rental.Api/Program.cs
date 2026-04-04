@@ -15,7 +15,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", p =>
-        p.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        p.AllowAnyOrigin()
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
@@ -79,6 +79,17 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(5193); // ?? THIS IS THE REAL FIX
+
+    // HTTPS for web
+    serverOptions.ListenLocalhost(7253, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -87,7 +98,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("ReactApp");
 app.UseAuthentication();   // ?? MUST come before UseAuthorization
 app.UseAuthorization();
