@@ -17,7 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", p =>
-        p.WithOrigins("https://69d9ae3b313dbf2ddef68891--lucky-mermaid-5322af.netlify.app/")
+        p.WithOrigins("https://69d9ae3b313dbf2ddef68891--lucky-mermaid-5322af.netlify.app")
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
