@@ -17,11 +17,10 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", p =>
-        p.AllowAnyOrigin()   // ?? Change to WithOrigins(...) later for production
+        p.WithOrigins("https://69d9a365c0dbb42aaef924e6--loquacious-starlight-a1dde8.netlify.app")
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
-
 // ? Identity
 builder.Services
     .AddIdentityCore<AppUser>()
