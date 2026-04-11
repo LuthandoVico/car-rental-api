@@ -9,24 +9,27 @@ using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ? Database (PostgreSQL)
 builder.Services.AddDbContext<AppDbContext>(options =>
-  options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// ? CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ReactApp", p =>
-        p.AllowAnyOrigin()
+        p.AllowAnyOrigin()   // ?? Change to WithOrigins(...) later for production
          .AllowAnyHeader()
          .AllowAnyMethod());
 });
 
+// ? Identity
 builder.Services
     .AddIdentityCore<AppUser>()
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-// ?? Auth
+// ? JWT Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -46,9 +49,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// ? Controllers
 builder.Services.AddControllers();
 
-// ?? Swagger JWT config
+// ? Swagger + JWT support
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Car-Rental.Api", Version = "v1" });
@@ -79,30 +83,25 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.WebHost.ConfigureKestrel(serverOptions =>
-{
-    serverOptions.ListenAnyIP(5193); // ?? THIS IS THE REAL FIX
-
-    // HTTPS for web
-    serverOptions.ListenLocalhost(7253, listenOptions =>
-    {
-        listenOptions.UseHttps();
-    });
-});
-
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// ? Swagger (enable always for now — easier testing on Render)
+app.UseSwagger();
+app.UseSwaggerUI();
 
-//app.UseHttpsRedirection();
+// ? Disable HTTPS redirect (Render handles this)
+// app.UseHttpsRedirection();
+
 app.UseCors("ReactApp");
-app.UseAuthentication();   // ?? MUST come before UseAuthorization
+
+// ? Order matters
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// ? IMPORTANT: Render dynamic port
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+app.Urls.Add($"http://0.0.0.0:{port}");
 
 app.Run();
